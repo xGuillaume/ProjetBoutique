@@ -1,0 +1,7 @@
+=== JOURNAL DE CHARGEMENT BRONZE ===
+
+clients | Source=8000 | Bronze=8000 | OK
+produits | Source=500 | Bronze=500 | OK
+commandes | Source=50000 | Bronze=50000 | OK
+lignes_commande | Source=111095 | Bronze=111095 | OK
+retours | Source=6000 | Bronze=6000 | OK

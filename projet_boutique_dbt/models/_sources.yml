@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: bronze
+    schema: bronze
+
+    tables:
+      - name: clients
+      - name: produits
+      - name: commandes
+      - name: lignes_commande
+      - name: retours

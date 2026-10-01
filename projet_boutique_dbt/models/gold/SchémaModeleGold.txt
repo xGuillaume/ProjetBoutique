@@ -1,0 +1,221 @@
+=========================================================
+SCHEMA DU MODELE GOLD
+=========================================================
+
+Le modèle Gold a été conçu selon une architecture en étoile
+(Star Schema) afin de faciliter l’analyse des données dans
+Power BI et le calcul des indicateurs métiers.
+
+SCHEMA CONCEPTUEL
+
+                    DIM_CLIENTS
+                         |
+                         |
+                         |
+DIM_PRODUITS ------ FACT_VENTES ------ FACT_RETOURS
+
+
+=========================================================
+DESCRIPTION DES TABLES
+=========================================================
+
+1. DIM_CLIENTS
+
+Dimension contenant les informations descriptives
+des clients.
+
+Colonnes principales :
+
+- id_client
+- nom
+- prenom
+- genre
+- ville
+- region
+- canal_acquisition
+- date_inscription
+
+Objectif :
+
+Permet d’analyser les ventes et le comportement des
+clients selon leur localisation, leur genre ou leur
+canal d’acquisition.
+
+
+---------------------------------------------------------
+
+2. DIM_PRODUITS
+
+Dimension contenant les informations descriptives
+des produits.
+
+Colonnes principales :
+
+- id_produit
+- nom_produit
+- categorie
+- sous_categorie
+- genre_cible
+- marque
+- matiere
+- collection
+
+Objectif :
+
+Permet d’analyser les ventes, la marge et les retours
+selon les caractéristiques des produits.
+
+
+---------------------------------------------------------
+
+3. FACT_VENTES
+
+Table de faits principale du modèle Gold.
+
+Grain :
+
+Une ligne correspond à une ligne de commande.
+
+Colonnes principales :
+
+- id_ligne
+- id_commande
+- id_client
+- id_produit
+- date_commande
+- date_livraison
+- canal_commande
+- mode_livraison
+- code_promo
+- quantite
+- prix_unitaire_facture
+- cout_unitaire
+- remise_pct
+- chiffre_affaires
+- cout_total
+- marge
+
+Mesures calculées :
+
+Chiffre d’affaires :
+quantite × prix_unitaire_facture
+
+Coût total :
+quantite × cout_unitaire
+
+Marge :
+chiffre_affaires - cout_total
+
+Objectif :
+
+Permet de suivre l’évolution du chiffre d’affaires,
+de la marge, des ventes par produit, des performances
+commerciales, des promotions ainsi que des délais de
+livraison.
+
+
+---------------------------------------------------------
+
+4. FACT_RETOURS
+
+Table de faits dédiée aux retours.
+
+Grain :
+
+Une ligne correspond à un retour.
+
+Colonnes principales :
+
+- id_retour
+- id_ligne
+- id_commande
+- id_client
+- id_produit
+- date_retour
+- motif
+- quantite_retournee
+- montant_rembourse
+- statut_remboursement
+
+Objectif :
+
+Permet d’analyser les produits retournés, les montants
+remboursés et les motifs de retour.
+
+
+=========================================================
+JUSTIFICATION DU MODELE
+=========================================================
+
+Le choix d’un modèle en étoile a été retenu pour les
+raisons suivantes :
+
+- simplicité de compréhension pour les utilisateurs ;
+- facilité d’exploitation dans Power BI ;
+- bonnes performances de requêtage ;
+- séparation claire entre dimensions et faits ;
+- calcul simplifié des indicateurs de pilotage.
+
+La table FACT_VENTES constitue le cœur du modèle
+analytique et permet de répondre à la majorité des
+besoins métiers.
+
+La table FACT_RETOURS complète l’analyse en apportant
+une vision sur les retours et les remboursements.
+
+Les dimensions DIM_CLIENTS et DIM_PRODUITS apportent
+le contexte nécessaire à l’analyse des ventes.
+
+
+=========================================================
+COUVERTURE DES BESOINS METIER
+=========================================================
+
+Besoin 1 :
+Suivre l’évolution du chiffre d’affaires et de la marge.
+
+Table utilisée :
+- FACT_VENTES
+
+
+Besoin 2 :
+Analyser la performance des produits
+(ventes, marge, retours).
+
+Tables utilisées :
+- FACT_VENTES
+- FACT_RETOURS
+- DIM_PRODUITS
+
+
+Besoin 3 :
+Mesurer le comportement et la fidélité des clients.
+
+Tables utilisées :
+- FACT_VENTES
+- DIM_CLIENTS
+
+
+Besoin 4 :
+Évaluer la qualité logistique
+(délais de livraison).
+
+Table utilisée :
+- FACT_VENTES
+
+Colonnes :
+- date_commande
+- date_livraison
+
+
+Besoin 5 :
+Mesurer l’efficacité des promotions et des soldes.
+
+Table utilisée :
+- FACT_VENTES
+
+Colonnes :
+- remise_pct
+- code_promo
+
+=========================================================

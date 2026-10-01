@@ -1,0 +1,267 @@
+RÈGLES DE NETTOYAGE - COUCHE SILVER
+
+Objectif
+------------------------------------------------------------
+Produire des données propres, homogènes, typées et fiables
+dans la couche Silver à partir des données de la couche Bronze.
+
+
+============================================================
+Règle 0 : Suppression des espaces inutiles
+============================================================
+
+Anomalie détectée
+------------------------------------------------------------
+Présence potentielle d'espaces en début ou fin de chaîne de caractères.
+
+Exemples :
+" PARIS"
+"PARIS "
+" Dupont "
+" jean.dupont@gmail.com "
+
+Traitement
+------------------------------------------------------------
+Application systématique de :
+
+TRIM(colonne)
+
+sur toutes les colonnes textuelles.
+
+
+
+============================================================
+Règle 1 : Gestion des valeurs manquantes
+============================================================
+
+Anomalie détectée
+------------------------------------------------------------
+clients : 368 valeurs manquantes
+produits : 10 valeurs manquantes
+commandes : 49 372 valeurs manquantes
+lignes_commande : 120 valeurs manquantes
+retours : 316 valeurs manquantes
+
+Traitement
+------------------------------------------------------------
+Remplacer les valeurs NULL des colonnes textuelles par :
+
+"Inconnu"
+
+Les valeurs manquantes présentes sur des champs obligatoires
+sont dirigées vers une table de quarantaine.
+
+
+============================================================
+Règle 2 : Gestion des doublons métiers clients
+============================================================
+
+Anomalie détectée
+------------------------------------------------------------
+555 groupes de clients potentiellement dupliqués.
+
+Critère de détection :
+
+Même nom + même prénom + même ville.
+
+Traitement
+------------------------------------------------------------
+Conserver une seule occurrence dans la couche Silver.
+
+Les enregistrements supplémentaires sont déplacés dans une
+table de quarantaine.
+
+
+============================================================
+Règle 3 : Normalisation des villes
+============================================================
+
+Anomalie détectée
+------------------------------------------------------------
+76 villes distinctes observées dans les données brutes.
+
+16 villes distinctes après normalisation.
+
+La différence indique la présence de nombreuses variantes
+d'écriture.
+
+Traitement
+------------------------------------------------------------
+Suppression des espaces inutiles : TRIM(ville)
+
+Puis uniformisation de la casse : UPPER(ville)
+
+
+============================================================
+Règle 4 : Validation des emails
+============================================================
+
+Anomalie détectée
+------------------------------------------------------------
+160 emails invalides.
+
+L'analyse montre qu'ils correspondent principalement à des
+valeurs absentes ou non renseignées.
+
+Traitement
+------------------------------------------------------------
+Application d'un contrôle de format sur les emails.
+
+Les lignes concernées sont conservées mais tracées dans : quarantaine.clients
+
+
+============================================================
+Règle 5 : Contrôle de cohérence des dates
+============================================================
+
+Anomalie détectée
+------------------------------------------------------------
+Dates de naissance futures : 0
+
+Date de naissance > date inscription : 0
+
+Date livraison < date commande : 40
+
+Date retour < date commande : 30
+
+Date retour < date livraison : 246
+
+Traitement
+------------------------------------------------------------
+Contrôle des règles métier suivantes :
+
+date_naissance <= date_inscription
+
+date_naissance <= date_du_jour
+
+date_livraison >= date_commande
+
+date_retour >= date_commande
+
+date_retour >= date_livraison
+
+Les enregistrements ne respectant pas ces règles sont
+dirigés vers les tables de quarantaine correspondantes.
+
+
+
+============================================================
+Règle 6 : Contrôle de la période des transactions
+============================================================
+
+Anomalie détectée
+------------------------------------------------------------
+Date minimale observée : 2024-09-01
+
+Date maximale observée : 2025-08-31
+
+Traitement
+------------------------------------------------------------
+Vérifier que les transactions appartiennent à la période
+attendue :
+
+du 01/09/2024 au 31/08/2025
+
+Toute transaction hors période est dirigée vers une table
+de quarantaine.
+
+
+============================================================
+Règle 7 : Contrôle des montants et des prix
+============================================================
+
+Anomalie détectée
+------------------------------------------------------------
+Montants négatifs : 0
+
+Prix négatifs : 0
+
+Traitement
+------------------------------------------------------------
+Contrôle systématique des règles suivantes :
+
+montant_total >= 0
+
+prix_unitaire >= 0
+
+Toute valeur négative détectée est envoyée en quarantaine.
+
+
+============================================================
+Règle 8 : Contrôle de l'intégrité référentielle
+============================================================
+
+Anomalie détectée
+------------------------------------------------------------
+Clients orphelins : 0
+
+Produits orphelins : 0
+
+Commandes orphelines : 0
+
+Lignes orphelines : 0
+
+Traitement
+------------------------------------------------------------
+Vérification systématique des relations :
+
+commande → client
+
+ligne_commande → commande
+
+ligne_commande → produit
+
+retour → ligne_commande
+
+Toute donnée orpheline est dirigée vers les tables de
+quarantaine.
+
+
+
+============================================================
+GESTION DES REJETS
+============================================================
+
+Principe
+------------------------------------------------------------
+Conformément aux consignes du projet, les données rejetées ne
+sont jamais supprimées.
+
+Elles sont conservées dans des tables de quarantaine afin de :
+
+- préserver la traçabilité ;
+- faciliter les analyses qualité ;
+- permettre les corrections ultérieures.
+
+Schéma proposé :
+------------------------------------------------------------
+
+quarantaine.clients
+
+quarantaine.produits
+
+quarantaine.commandes
+
+quarantaine.lignes_commande
+
+quarantaine.retours
+
+
+============================================================
+CONCLUSION
+============================================================
+
+Le profilage de la couche Bronze a permis d'identifier :
+
+- 50 186 valeurs manquantes ;
+- 555 groupes de doublons métiers potentiels ;
+- des incohérences d'écriture sur les villes ;
+- 160 emails invalides ;
+- 316 anomalies de cohérence chronologique
+(40 livraisons avant commande,
+30 retours avant commande,
+246 retours avant livraison).
+
+Ces règles seront implémentées dans les modèles dbt de la
+couche Silver afin de produire des données propres,
+homogènes et fiables.

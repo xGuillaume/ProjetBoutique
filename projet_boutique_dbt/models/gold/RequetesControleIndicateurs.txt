@@ -1,0 +1,183 @@
+=========================================================
+REQUÊTES DE CONTRÔLE DES INDICATEURS CLÉS
+=========================================================
+
+Les requêtes suivantes permettent de vérifier que le
+modèle Gold répond aux besoins métier exprimés.
+
+=========================================================
+1. ÉVOLUTION DU CHIFFRE D'AFFAIRES ET DE LA MARGE
+=========================================================
+
+SELECT
+    DATE_TRUNC('month', date_commande) AS mois,
+    SUM(chiffre_affaires) AS chiffre_affaires,
+    SUM(marge) AS marge
+FROM silver.fact_ventes
+GROUP BY 1
+ORDER BY 1;
+
+Objectif :
+Suivre l'évolution mensuelle du chiffre d'affaires
+et de la marge.
+
+
+=========================================================
+2. PERFORMANCE DES PRODUITS
+=========================================================
+
+Top produits par chiffre d'affaires :
+
+SELECT
+    id_produit,
+    SUM(chiffre_affaires) AS chiffre_affaires,
+    SUM(marge) AS marge,
+    SUM(quantite) AS quantite_vendue
+FROM silver.fact_ventes
+GROUP BY id_produit
+ORDER BY chiffre_affaires DESC;
+
+Objectif :
+Identifier les produits les plus performants.
+
+
+---------------------------------------------------------
+
+Produits les plus retournés :
+
+SELECT
+    id_produit,
+    COUNT(*) AS nb_retours,
+    SUM(montant_rembourse) AS montant_rembourse
+FROM silver.fact_retours
+GROUP BY id_produit
+ORDER BY nb_retours DESC;
+
+Objectif :
+Identifier les produits générant le plus de retours.
+
+
+=========================================================
+3. COMPORTEMENT ET FIDÉLITÉ CLIENTS
+=========================================================
+
+Nombre de commandes et chiffre d'affaires par client :
+
+SELECT
+    id_client,
+    COUNT(DISTINCT id_commande) AS nb_commandes,
+    SUM(chiffre_affaires) AS chiffre_affaires_total
+FROM silver.fact_ventes
+GROUP BY id_client
+ORDER BY nb_commandes DESC;
+
+Objectif :
+Mesurer la fréquence d'achat et la fidélité.
+
+
+---------------------------------------------------------
+
+Top clients :
+
+SELECT
+    id_client,
+    SUM(chiffre_affaires) AS chiffre_affaires_total
+FROM silver.fact_ventes
+GROUP BY id_client
+ORDER BY chiffre_affaires_total DESC;
+
+Objectif :
+Identifier les clients générant le plus de revenus.
+
+
+=========================================================
+4. QUALITÉ LOGISTIQUE
+=========================================================
+
+Délai moyen de livraison :
+
+SELECT
+    ROUND(
+        AVG(date_livraison - date_commande),
+        2
+    ) AS delai_moyen_jours
+FROM silver.fact_ventes
+WHERE date_livraison IS NOT NULL;
+
+Objectif :
+Mesurer la performance logistique globale.
+
+
+---------------------------------------------------------
+
+Délai moyen par mode de livraison :
+
+SELECT
+    mode_livraison,
+    ROUND(
+        AVG(date_livraison - date_commande),
+        2
+    ) AS delai_moyen_jours
+FROM silver.fact_ventes
+WHERE date_livraison IS NOT NULL
+GROUP BY mode_livraison;
+
+Objectif :
+Comparer les délais selon le mode de livraison.
+
+
+=========================================================
+5. EFFICACITÉ DES PROMOTIONS ET DES SOLDES
+=========================================================
+
+Impact des remises :
+
+SELECT
+    remise_pct,
+    COUNT(*) AS nb_ventes,
+    SUM(chiffre_affaires) AS chiffre_affaires,
+    SUM(marge) AS marge
+FROM silver.fact_ventes
+GROUP BY remise_pct
+ORDER BY remise_pct;
+
+Objectif :
+Mesurer l'effet des remises sur les ventes
+et la marge.
+
+
+---------------------------------------------------------
+
+Performance des codes promotionnels :
+
+SELECT
+    code_promo,
+    COUNT(*) AS nb_ventes,
+    SUM(chiffre_affaires) AS chiffre_affaires,
+    SUM(marge) AS marge
+FROM silver.fact_ventes
+GROUP BY code_promo
+ORDER BY chiffre_affaires DESC;
+
+Objectif :
+Identifier les promotions les plus efficaces.
+
+
+=========================================================
+CONCLUSION
+=========================================================
+
+Les requêtes ci-dessus permettent de contrôler les
+indicateurs clés définis par les besoins métier :
+
+- évolution du chiffre d'affaires ;
+- évolution de la marge ;
+- performance des produits ;
+- suivi des retours ;
+- fidélité des clients ;
+- qualité logistique ;
+- efficacité des promotions.
+
+Le modèle Gold permet ainsi de fournir une base
+d'analyse directement exploitable dans Power BI.
+=========================================================

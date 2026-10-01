@@ -1,0 +1,16 @@
+.venv/
+airflow_venv/
+logs/
+target/
+__pycache__/
+*.pyc
+.DS_Store
+venv/
+.env
+*.log
+archives/
+.idea/
+.vscode/
+*.pbix
+*.docx
+*.xlsx
